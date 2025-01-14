@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: pact-postgres
+    environment:
+      POSTGRES_DB: pact_broker
+      POSTGRES_USER: pact_user
+      POSTGRES_PASSWORD: pact_pass
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - pact-postgres-data:/var/lib/postgresql/data
+
+  pact-broker:
+    image: pactfoundation/pact-broker
+    container_name: pact-broker
+    depends_on:
+      - postgres
+    ports:
+      - "9292:9292"
+    environment:
+      PACT_BROKER_DATABASE_ADAPTER: "postgres"
+      PACT_BROKER_DATABASE_HOST: "postgres"
+      PACT_BROKER_DATABASE_NAME: "pact_broker"
+      PACT_BROKER_DATABASE_USERNAME: "pact_user"
+      PACT_BROKER_DATABASE_PASSWORD: "pact_pass"
+      PACT_BROKER_LOG_LEVEL: DEBUG

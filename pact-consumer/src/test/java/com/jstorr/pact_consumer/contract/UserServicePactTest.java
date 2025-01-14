@@ -1,6 +1,8 @@
 package com.jstorr.pact_consumer.contract;
 
 import au.com.dius.pact.consumer.MockServer;
+import au.com.dius.pact.consumer.dsl.PactDslJsonArray;
+import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.*;
 import au.com.dius.pact.core.model.RequestResponsePact;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(providerName = "UserProvider", port = "8091")
-public class UserServicePactTest {
+class UserServicePactTest {
 
     /**
      * Define the Pact for GET /api/v1/user/users
@@ -38,18 +41,15 @@ public class UserServicePactTest {
                 .method("GET")
                 .willRespondWith()
                 .status(200)
-                .headers(Map.of("Content-Type", "application/json")) // <-- Add this line
-                .body("""
-                {
-                  "users": [
-                    {
-                      "name": "James Bond",
-                      "email": "james.bond@007.com",
-                      "userId": "123"
-                    }
-                  ]
-                }
-                """)
+                .headers(Map.of("Content-Type", "application/json"))
+                .body(
+                        new PactDslJsonBody()
+                                .minArrayLike("users", 1) // Defines an array with at least one object
+                                .stringType("name")
+                                .stringMatcher("email", ".+@.+\\..+", "example@example.com") // Valid email regex
+                                .stringType("userId")
+                                .closeObject()
+                )
                 .toPact(V4Pact.class);
     }
 
@@ -71,15 +71,15 @@ public class UserServicePactTest {
                 }
                 """)
                 .willRespondWith()
-                .status(200)
+                .status(201)
                 .headers(Map.of("Content-Type", "application/json")) // <-- Add this line
-                .body("""
-                {
-                  "name": "James Bond",
-                  "email": "james.bond@007.com",
-                  "userId": "789"
-                }
-                """)
+                .body(
+                        new PactDslJsonBody()
+                                .stringType("name", "James Bond")
+                                .stringMatcher("email", ".+@.+\\..+", "james.bond@007.com")
+                                .stringType("userId", "789")
+
+               )
                 .toPact(V4Pact.class);
     }
 
@@ -94,6 +94,7 @@ public class UserServicePactTest {
 
         UsersDto result = RestAssured
                 .given()
+                .header("Accept", "application/json") // Ensure it matches response Content-Type
                 .get("/api/v1/user/users")
                 .then()
                 .statusCode(200)
@@ -103,9 +104,16 @@ public class UserServicePactTest {
         assertNotNull(result);
         assertNotNull(result.getUsers());
         assertFalse(result.getUsers().isEmpty());
-        assertEquals("James Bond", result.getUsers().get(0).getName());
-        assertEquals("james.bond@007.com", result.getUsers().get(0).getEmail());
-        assertEquals("123", result.getUsers().get(0).getUserId());
+        result.getUsers().forEach(user -> {
+            assertNotNull(user.getName(), "User name should not be null");
+            assertTrue(user.getName() instanceof String, "User name should be a string");
+
+            assertNotNull(user.getEmail(), "User email should not be null");
+            assertTrue(user.getEmail().contains("@"), "User email should contain '@'"); // Basic validation
+
+            assertNotNull(user.getUserId(), "User ID should not be null");
+            assertTrue(user.getUserId() instanceof String, "User ID should be a string");
+        });
     }
 
     /**
@@ -128,13 +136,19 @@ public class UserServicePactTest {
             """)
                 .post("/api/v1/user")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract()
                 .as(User.class);
 
-        assertNotNull(result);
-        assertEquals("James Bond", result.getName());
-        assertEquals("james.bond@007.com", result.getEmail());
-        assertEquals("789", result.getUserId());
+
+        assertNotNull(result, "Response should not be null");
+        assertNotNull(result.getName(), "Name should not be null");
+        assertTrue(result.getName() instanceof String, "Name should be a string");
+
+        assertNotNull(result.getEmail(), "Email should not be null");
+        assertTrue(result.getEmail().contains("@"), "Email should contain '@'");
+
+        assertNotNull(result.getUserId(), "User ID should not be null");
+        assertTrue(result.getUserId() instanceof String, "User ID should be a string");
     }
 }
