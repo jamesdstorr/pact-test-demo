@@ -28,13 +28,13 @@ class PactProviderTest {
 
 
 
-    @State("The provider can create a user") // Corrected state
+    @State("The provider can create a user")
     public void setupCreateUser() {
         // Mock or prepare backend data for creating a user
         System.out.println("Setting up provider state: the provider can create a user");
     }
 
-    @State("A list of users exists") // Corrected state
+    @State("A list of users exists")
     public void setupListUsers() {
         // Mock or prepare backend data for fetching a list of users
         System.out.println("Setting up provider state: a list of users exists");

@@ -1,6 +1,6 @@
-com/jstorr/pact_provider/controller/dto/User.class
-com/jstorr/pact_provider/controller/dto/CreateUserDto.class
-com/jstorr/pact_provider/PactProviderApplication.class
-com/jstorr/pact_provider/controller/dto/UsersDto.class
-com/jstorr/pact_provider/controller/ProviderController.class
-com/jstorr/pact_provider/controller/dto/User$UserBuilder.class
+com\jstorr\pact_provider\PactProviderApplication.class
+com\jstorr\pact_provider\controller\dto\CreateUserDto.class
+com\jstorr\pact_provider\controller\dto\User.class
+com\jstorr\pact_provider\controller\dto\User$UserBuilder.class
+com\jstorr\pact_provider\controller\dto\UsersDto.class
+com\jstorr\pact_provider\controller\ProviderController.class
